@@ -29,9 +29,16 @@ p{margin:0}
 a{color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
 
-/* 頂部 */
-header{padding-block:22px}
+/* 頂部：捲動時固定在上方，目錄可直接跳到各區 */
+html{scroll-padding-top:96px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+header{position:sticky;top:0;z-index:10;padding-block:14px;background:rgb(247 231 206 / .94);backdrop-filter:blur(8px);border-bottom:1px solid transparent;transition:border-color .2s}
+header.scrolled{border-bottom-color:var(--line)}
 header .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.toc{display:flex;gap:4px;margin-left:auto}
+.toc a{font-family:var(--f-title);font-size:15px;text-decoration:none;color:var(--ink-soft);padding:6px 12px;border-radius:999px;white-space:nowrap}
+.toc a:hover{color:var(--accent)}
+.toc a[aria-current="true"]{color:var(--accent);background:var(--paper)}
 .sig{font-family:var(--f-body);font-size:24px;font-weight:700;color:var(--accent);letter-spacing:.06em}
 .sig small{display:block;font-size:12px;font-weight:400;color:var(--ink-soft);letter-spacing:.2em;margin-top:-4px}
 .top-cta{font-family:var(--f-title);font-size:15px;text-decoration:none;color:var(--accent);border:1.5px solid var(--accent);padding:6px 16px;border-radius:999px;white-space:nowrap}
@@ -130,6 +137,15 @@ textarea:focus{outline:none;border-color:var(--accent)}
 .ask-actions{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
 .ask-note{font-size:15px;color:var(--ink-soft)}
 @media (max-width:760px){.quiz{padding:24px 20px 28px}}
+/* 窄螢幕：目錄換到第二行，可左右滑動 */
+@media (max-width:960px){
+  html{scroll-padding-top:136px}
+  header{padding-block:12px 6px}
+  header .wrap{flex-wrap:wrap;row-gap:6px}
+  .toc{order:3;flex-basis:100%;margin:0 -12px;padding:0 12px 4px;overflow-x:auto;scrollbar-width:none}
+  .toc::-webkit-scrollbar{display:none}
+  .toc a{padding:6px 10px;font-size:14px}
+}
 
 @media (max-width:760px){
   body{font-size:17px}
@@ -148,6 +164,14 @@ textarea:focus{outline:none;border-color:var(--accent)}
 <header>
   <div class="wrap">
     <div class="sig">郭馨慈 <span style="font-weight:400">Sanny</span><small>保險規劃・長期陪伴</small></div>
+    <nav class="toc" aria-label="網頁目錄">
+      <a href="#who">我陪伴的人</a>
+      <a href="#how">怎麼陪你</a>
+      <a href="#core">我的初心</a>
+      <a href="#quiz">小測驗</a>
+      <a href="#ask">提問箱</a>
+      <a href="#contact">聯絡我</a>
+    </nav>
     <a class="top-cta" href="https://line.me/ti/p/AvxeBqtzQb" target="_blank" rel="noopener">LINE 聊聊</a>
   </div>
 </header>
@@ -206,7 +230,7 @@ textarea:focus{outline:none;border-color:var(--accent)}
     </div>
   </section>
 
-  <section class="band core">
+  <section class="band core" id="core">
     <div class="wrap">
       <span class="eyebrow" style="display:block;margin-bottom:18px">我的初心</span>
       <blockquote>用專業建立信任，<br>用時間<span>建立長久的關係</span>。</blockquote>
@@ -340,6 +364,18 @@ textarea:focus{outline:none;border-color:var(--accent)}
     if(!v){an.textContent='LINE 已打開，直接打字問我就可以';return}
     copy('Sanny 你好，我想請問：'+v,an,'問題已複製，到 LINE 貼上送出就好');
   });
+  /* 目錄：標示目前所在的區塊 */
+  var hdr=document.querySelector('header'),links=document.querySelectorAll('.toc a'),last=null;
+  function onScroll(){
+    hdr.classList.toggle('scrolled',window.scrollY>8);
+    var cur=null,y=window.scrollY+hdr.offsetHeight+40;
+    links.forEach(function(a){var s=document.querySelector(a.getAttribute('href'));if(s&&s.offsetTop<=y)cur=a});
+    if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4)cur=links[links.length-1];
+    links.forEach(function(a){if(a===cur)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')});
+    if(cur&&cur!==last&&window.innerWidth<=960)cur.parentNode.scrollTo({left:cur.offsetLeft-12,behavior:'smooth'});
+    last=cur;
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 })();
 </script>
 
